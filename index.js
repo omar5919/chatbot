@@ -1,22 +1,33 @@
 const fs = require('fs')
 const ora = require('ora')
 const chalk = require('chalk')
-const { Client } = require('whatsapp-web.js')
+const { Client, MessageMedia } = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal');
+const express = require('express');
+const app = express();
 
 const SESION_FILE_PATH = './session.json';
 let cliente;
 let sessionData;
 
+app.use(express.urlencoded({ extended: true }))
+
+app.post('/enviarwsp', sendWithApi);
+
+const sendWithApi = (req, res) => {
+    res.send({})
+}
 
 const withSesion = () => {
-    console.log('con sesion');
+    console.log('Existe una sesion...');
     const spinner = ora(`Cargando ${chalk.yellow('Validando sesion...')}`);
     sessionData = require(SESION_FILE_PATH);
     spinner.start();
     cliente = new Client({ session: sessionData })
     cliente.on('ready', () => {
         console.log('Cliente ready');
+        listenMessage();
+        console.log('Cliente escuchando');
         spinner.stop();
     })
     cliente.on('auth_failure', () => {
@@ -27,7 +38,7 @@ const withSesion = () => {
 }
 
 const withOutSesion = () => {
-    console.log('sin session');
+    console.log('sin session. Generando QR...');
     cliente = new Client();
     cliente.on('qr', (qr) => {
         console.log('qr ready', qr);
@@ -45,6 +56,34 @@ const withOutSesion = () => {
         console.log('cliente ready');
     })
     cliente.initialize();
+}
+
+//funcion para escuchar los mensajes
+const listenMessage = () => {
+    cliente.on('message', (msg) => {
+        const { from, to, body } = msg;
+        if (from === '51966528919@c.us') {
+            switch (body) {
+                case 'imagen':
+                    sendMedia(from, 'bienvenido.jpg');
+                    break;
+                case 'mensaje':
+                    sendMessage(from, 'respuesta automatica...');
+                    break;
+                default:
+                    break;
+            }
+        }
+    })
+}
+
+const sendMessage = (to, message) => {
+    cliente.sendMessage(to, message);
+}
+
+const sendMedia = (to, file) => {
+    const mediaFile = MessageMedia.fromFilePath(`./media/${file}`);
+    cliente.sendMessage(to, mediaFile);
 }
 
 (fs.existsSync(SESION_FILE_PATH)) ? withSesion() : withOutSesion();
