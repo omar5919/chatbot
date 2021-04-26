@@ -64,17 +64,15 @@ const withOutSesion = () => {
 const listenMessage = () => {
     cliente.on('message', (msg) => {
         const {from, to, body} = msg;
-        if (from === '51966528919@c.us') {
-            switch (body) {
-                case 'imagen':
-                    sendMedia(from, 'bienvenido.jpg');
-                    break;
-                case 'mensaje':
-                    sendMessage(from, 'respuesta automatica...');
-                    break;
-                default:
-                    break;
-            }
+        switch (body) {
+            case 'quiero info del ticket 1020':
+                sendMedia(from, 'bienvenido.jpg');
+                break;
+            case 'mensaje':
+                sendMessage(from, 'el ticket esta atendido (respuesta automatica...)');
+                break;
+            default:
+                break;
         }
     })
 }
