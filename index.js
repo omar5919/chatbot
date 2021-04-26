@@ -1,7 +1,7 @@
 const fs = require('fs')
 const ora = require('ora')
 const chalk = require('chalk')
-const { Client, MessageMedia } = require('whatsapp-web.js')
+const {Client, MessageMedia} = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal');
 const express = require('express');
 const app = express();
@@ -10,20 +10,22 @@ const SESION_FILE_PATH = './session.json';
 let cliente;
 let sessionData;
 
-app.use(express.urlencoded({ extended: true }))
-
-app.post('/enviarwsp', sendWithApi);
+app.use(express.urlencoded({extended: true}))
 
 const sendWithApi = (req, res) => {
-    res.send({})
+    const {message, to} = req.body;
+    sendMessage(`51${to}@c.us`,message);
+    res.send({status: 'enviado desde api'})
 }
+
+app.post('/enviarwsp', sendWithApi);
 
 const withSesion = () => {
     console.log('Existe una sesion...');
     const spinner = ora(`Cargando ${chalk.yellow('Validando sesion...')}`);
     sessionData = require(SESION_FILE_PATH);
     spinner.start();
-    cliente = new Client({ session: sessionData })
+    cliente = new Client({session: sessionData})
     cliente.on('ready', () => {
         console.log('Cliente ready');
         listenMessage();
@@ -42,7 +44,7 @@ const withOutSesion = () => {
     cliente = new Client();
     cliente.on('qr', (qr) => {
         console.log('qr ready', qr);
-        qrcode.generate(qr, { small: true })
+        qrcode.generate(qr, {small: true})
     })
 
     cliente.on('authenticated', (s) => {
@@ -61,7 +63,7 @@ const withOutSesion = () => {
 //funcion para escuchar los mensajes
 const listenMessage = () => {
     cliente.on('message', (msg) => {
-        const { from, to, body } = msg;
+        const {from, to, body} = msg;
         if (from === '51966528919@c.us') {
             switch (body) {
                 case 'imagen':
@@ -87,3 +89,7 @@ const sendMedia = (to, file) => {
 }
 
 (fs.existsSync(SESION_FILE_PATH)) ? withSesion() : withOutSesion();
+
+app.listen(9000, () => {
+    console.log('...api funcionando');
+})
