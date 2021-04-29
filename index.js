@@ -65,11 +65,14 @@ const listenMessage = () => {
     cliente.on('message', (msg) => {
         const {from, to, body} = msg;
         switch (body) {
-            case 'quiero info del ticket 1020':
+            case 'quiero informacion':
                 sendMedia(from, 'bienvenido.jpg');
                 break;
             case 'mensaje':
                 sendMessage(from, 'el ticket esta atendido (respuesta automatica...)');
+                break;
+            case 'a':
+                sendMessage(from, 'realice el pago con el codigo 2050');
                 break;
             default:
                 break;
